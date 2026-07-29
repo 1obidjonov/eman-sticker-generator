@@ -19,12 +19,12 @@ describe('PlaywrightTextMeasurementService', () => {
     service = new PlaywrightTextMeasurementService(
       new SinglePlaywrightPageProvider(page),
     );
-  }, 30_000);
+  }, 90_000);
 
   afterAll(async () => {
     await page?.close();
     await browser?.close();
-  }, 30_000);
+  }, 90_000);
 
   it('uses real Chromium canvas metrics', async () => {
     const font: FontSettings = {

@@ -1,6 +1,6 @@
 # Runbook Windows Release Candidate
 
-Этот документ описывает выпуск Eman Sticker Generator `0.8.0-rc.4`.
+Этот документ описывает выпуск Eman Sticker Generator `0.8.0-rc.5`.
 Release Candidate предназначен для внутреннего пилота и становится публичным
 только после успешной цифровой подписи.
 
@@ -37,8 +37,8 @@ Release Candidate предназначен для внутреннего пил�
 Из чистой основной ветки:
 
 ```bash
-git tag -a v0.8.0-rc.4 -m "Eman Sticker Generator 0.8.0-rc.4"
-git push origin v0.8.0-rc.4
+git tag -a v0.8.0-rc.5 -m "Eman Sticker Generator 0.8.0-rc.5"
+git push origin v0.8.0-rc.5
 ```
 
 Push тега запускает сборку и сохраняет workflow artifact, но сам по себе не
@@ -48,8 +48,8 @@ Push тега запускает сборку и сохраняет workflow art
 Альтернативный автоматизированный способ после зелёного workflow `Quality`:
 
 ```bash
-git branch release/v0.8.0-rc.4
-git push origin release/v0.8.0-rc.4
+git branch release/v0.8.0-rc.5
+git push origin release/v0.8.0-rc.5
 ```
 
 Workflow `Release Candidate Request` проверяет, что имя ветки совпадает с
@@ -58,7 +58,7 @@ Workflow `Release Candidate Request` проверяет, что имя ветк�
 
 ## Проверка результатов
 
-Скачайте artifact `eman-sticker-generator-v0.8.0-rc.4-windows-x64` и проверьте:
+Скачайте artifact `eman-sticker-generator-v0.8.0-rc.5-windows-x64` и проверьте:
 
 | Файл | Ожидаемый результат |
 |---|---|
@@ -76,7 +76,7 @@ Workflow `Release Candidate Request` проверяет, что имя ветк�
 
 После проверки внутреннего artifact запустите workflow вручную:
 
-- `release_tag`: `v0.8.0-rc.4`;
+- `release_tag`: `v0.8.0-rc.5`;
 - `publish_release`: `true`.
 
 Workflow повторно собирает кандидат из commit тега. Публикация блокируется,
