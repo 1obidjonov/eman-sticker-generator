@@ -34,7 +34,7 @@ describe('PlaywrightTextMeasurementService', () => {
 
   afterAll(async () => {
     await browser?.close();
-  });
+  }, 30_000);
 
   it('uses real Chromium canvas metrics', async () => {
     const font: FontSettings = {

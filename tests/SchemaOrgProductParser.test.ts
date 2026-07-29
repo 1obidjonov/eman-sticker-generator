@@ -79,7 +79,7 @@ afterAll(async () => {
   await new Promise<void>((resolve, reject) => {
     server?.close((error) => (error ? reject(error) : resolve()));
   });
-});
+}, 30_000);
 
 describe('SchemaOrgProductParser', () => {
   it('extracts product data from Schema.org JSON-LD', async () => {
