@@ -85,16 +85,24 @@ jobs:
           $application = Resolve-Path "release/win-unpacked/EmanStickerGenerator.exe"
           $report = Join-Path $env:RUNNER_TEMP "windows-smoke-report.json"
           $profile = Join-Path $env:RUNNER_TEMP "windows-unpacked-smoke-profile"
+          $standardOutput = Join-Path $env:RUNNER_TEMP "windows-smoke-stdout.log"
+          $standardError = Join-Path $env:RUNNER_TEMP "windows-smoke-stderr.log"
+          $electronLog = Join-Path $env:RUNNER_TEMP "windows-electron.log"
           New-Item -ItemType Directory -Path $profile -Force | Out-Null
           $arguments = @(
             "--smoke-test",
             "--smoke-output=$report",
             "--smoke-user-data-dir=$profile",
-            "--smoke-timeout-ms=30000"
+            "--smoke-timeout-ms=30000",
+            "--enable-logging",
+            "--log-file=$electronLog"
           )
           $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
           $startInfo.FileName = $application
           $startInfo.UseShellExecute = $false
+          $startInfo.RedirectStandardOutput = $true
+          $startInfo.RedirectStandardError = $true
+          $startInfo.Environment["ELECTRON_ENABLE_LOGGING"] = "1"
           foreach ($argument in $arguments) {
             [void]$startInfo.ArgumentList.Add($argument)
           }
@@ -102,20 +110,40 @@ jobs:
           if (-not $process) {
             throw "Packaged application did not start."
           }
+          $standardOutputTask = $process.StandardOutput.ReadToEndAsync()
+          $standardErrorTask = $process.StandardError.ReadToEndAsync()
+          $timedOut = $false
           try {
             if (-not $process.WaitForExit(60000)) {
+              $timedOut = $true
               $process.Kill($true)
-              if (Test-Path $report) {
-                Get-Content $report
-              }
+              $process.WaitForExit()
+            }
+            $standardOutputTask.GetAwaiter().GetResult() |
+              Set-Content -LiteralPath $standardOutput
+            $standardErrorTask.GetAwaiter().GetResult() |
+              Set-Content -LiteralPath $standardError
+            if ($timedOut) {
               throw "Packaged application smoke-test timed out."
             }
             if ($process.ExitCode -ne 0) {
-              if (Test-Path $report) {
-                Get-Content $report
-              }
               throw "Packaged application smoke-test failed with exit code $($process.ExitCode)"
             }
+          } catch {
+            foreach ($path in @(
+                $report,
+                $standardOutput,
+                $standardError,
+                $electronLog,
+                (Join-Path $profile "logs/application.log"),
+                (Join-Path $profile "logs/application.previous.log")
+              )) {
+              if (Test-Path -LiteralPath $path -PathType Leaf) {
+                Write-Host "===== $path ====="
+                Get-Content -LiteralPath $path
+              }
+            }
+            throw
           } finally {
             $process.Dispose()
           }
@@ -124,6 +152,20 @@ jobs:
             throw "Smoke report status is $($smoke.status)"
           }
           Copy-Item $report "release/windows-smoke-report.json"
+
+      - name: Upload smoke diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: windows-smoke-diagnostics-${{ env.RELEASE_TAG }}
+          path: |
+            ${{ runner.temp }}/windows-smoke-report.json
+            ${{ runner.temp }}/windows-smoke-stdout.log
+            ${{ runner.temp }}/windows-smoke-stderr.log
+            ${{ runner.temp }}/windows-electron.log
+            ${{ runner.temp }}/windows-unpacked-smoke-profile/logs/*.log
+          if-no-files-found: warn
+          retention-days: 7
 
       - name: Verify Authenticode status
         shell: pwsh

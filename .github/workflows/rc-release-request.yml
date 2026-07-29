@@ -87,3 +87,63 @@ jobs:
             --ref main \
             --field release_tag="${RELEASE_TAG}" \
             --field publish_release=false
+
+  retry-tag:
+    name: Retry existing RC tag
+    if: >-
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'retry/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout retry request
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.ref }}
+
+      - name: Validate existing release tag
+        shell: bash
+        env:
+          RETRY_BRANCH: ${{ github.event.ref }}
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          expected_branch="retry/v${package_version}"
+          release_tag="v${package_version}"
+
+          if [[ "${RETRY_BRANCH}" != "${expected_branch}" ]]; then
+            echo "Retry branch ${RETRY_BRANCH} must be ${expected_branch}."
+            exit 1
+          fi
+          if ! git rev-parse "${release_tag}^{commit}" > /dev/null 2>&1; then
+            echo "Release tag ${release_tag} does not exist."
+            exit 1
+          fi
+
+          echo "RELEASE_TAG=${release_tag}" >> "${GITHUB_ENV}"
+
+      - name: Restart Windows RC validation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          while read -r run_id; do
+            if [[ -n "${run_id}" ]]; then
+              gh run cancel "${run_id}" --repo "${GITHUB_REPOSITORY}"
+            fi
+          done < <(
+            gh run list \
+              --repo "${GITHUB_REPOSITORY}" \
+              --workflow windows-release.yml \
+              --limit 20 \
+              --json databaseId,status \
+              --jq '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId'
+          )
+
+          gh workflow run windows-release.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main \
+            --field release_tag="${RELEASE_TAG}" \
+            --field publish_release=false
