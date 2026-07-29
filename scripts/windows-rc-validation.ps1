@@ -112,12 +112,17 @@ function Invoke-CheckedProcess {
     [Parameter(Mandatory = $true)]
     [string]$Label,
 
+    [hashtable]$Environment = @{},
+
     [int]$TimeoutSeconds = 120
   )
 
   $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
   $startInfo.FileName = $FilePath
   $startInfo.UseShellExecute = $false
+  foreach ($entry in $Environment.GetEnumerator()) {
+    $startInfo.Environment[[string]$entry.Key] = [string]$entry.Value
+  }
   foreach ($argument in $Arguments) {
     [void]$startInfo.ArgumentList.Add($argument)
   }
@@ -183,15 +188,26 @@ function Invoke-InstalledSmoke {
     Remove-Item -LiteralPath $OutputPath -Force
   }
 
+  $bootstrapLog = "$OutputPath.bootstrap.log"
   Invoke-CheckedProcess `
     -FilePath $ApplicationPath `
     -Arguments @(
       "--smoke-user-data-dir=$userDataRoot",
       '--smoke-test',
       "--smoke-output=$OutputPath",
-      '--smoke-timeout-ms=30000'
+      '--smoke-timeout-ms=30000',
+      '--disable-gpu'
     ) `
     -Label 'Installed application smoke-test' `
+    -Environment @{
+      STICKER_SMOKE_TEST = '1'
+      STICKER_SMOKE_OUTPUT = $OutputPath
+      STICKER_SMOKE_USER_DATA_DIR = $userDataRoot
+      STICKER_SMOKE_TIMEOUT_MS = '30000'
+      STICKER_SMOKE_BOOTSTRAP_LOG = $bootstrapLog
+      STICKER_APP_VERSION = $ExpectedVersion
+      ELECTRON_ENABLE_LOGGING = '1'
+    } `
     -TimeoutSeconds 60
 
   Assert-Gate `

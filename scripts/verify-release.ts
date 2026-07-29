@@ -237,6 +237,7 @@ await check('Windows RC lifecycle validation', async () => {
     'Get-AuthenticodeSignature',
     'Silent NSIS installation',
     'Installed application runtime',
+    'STICKER_SMOKE_TEST',
     'Restart persistence',
     'Silent NSIS uninstall',
     'User data preservation',
