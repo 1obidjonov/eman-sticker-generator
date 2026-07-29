@@ -1,0 +1,76 @@
+name: Release Candidate Request
+
+on:
+  create:
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  create-tag:
+    name: Create verified RC tag
+    if: >-
+      github.event.ref_type == 'branch' &&
+      startsWith(github.event.ref, 'release/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout release request
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.ref }}
+
+      - name: Validate release branch
+        shell: bash
+        env:
+          RELEASE_BRANCH: ${{ github.event.ref }}
+        run: |
+          set -euo pipefail
+          package_version="$(node -p "require('./package.json').version")"
+          expected_branch="release/v${package_version}"
+
+          if [[ "${RELEASE_BRANCH}" != "${expected_branch}" ]]; then
+            echo "Release branch ${RELEASE_BRANCH} must be ${expected_branch}."
+            exit 1
+          fi
+
+          git fetch origin main
+          source_commit="$(git rev-parse HEAD)"
+          main_commit="$(git rev-parse origin/main)"
+          if [[ "${source_commit}" != "${main_commit}" ]]; then
+            echo "Release branch must point to current main (${main_commit})."
+            exit 1
+          fi
+
+          echo "RELEASE_TAG=v${package_version}" >> "${GITHUB_ENV}"
+
+      - name: Create annotated release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git ls-remote --exit-code --tags origin \
+            "refs/tags/${RELEASE_TAG}" > /dev/null 2>&1; then
+            echo "Tag ${RELEASE_TAG} already exists."
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email \
+            "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${RELEASE_TAG}" \
+            -m "Eman Sticker Generator ${RELEASE_TAG}"
+          git push origin "refs/tags/${RELEASE_TAG}"
+
+      - name: Start Windows RC validation
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh workflow run windows-release.yml \
+            --repo "${GITHUB_REPOSITORY}" \
+            --ref main \
+            --field release_tag="${RELEASE_TAG}" \
+            --field publish_release=false
