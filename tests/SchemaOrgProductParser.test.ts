@@ -1,8 +1,5 @@
 import { createServer, type Server } from 'node:http';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import chromiumBundle from '@sparticuz/chromium';
-import { chromium, type Browser, type Page } from 'playwright-core';
+import type { Browser, Page } from 'playwright-core';
 import {
   afterAll,
   beforeAll,
@@ -11,7 +8,7 @@ import {
   it,
 } from 'vitest';
 import { SchemaOrgProductParser } from '../src/core/parsers/index.js';
-import { resolveBundledChromiumExecutable } from '../src/main/services/BundledChromium.js';
+import { launchApplicationBrowser } from '../src/main/services/BrowserFactory.js';
 
 let browser: Browser;
 let page: Page;
@@ -61,20 +58,12 @@ beforeAll(async () => {
   }
   baseUrl = `http://127.0.0.1:${address.port}`;
 
-  chromiumBundle.setGraphicsMode = false;
-  browser = await chromium.launch({
-    args: chromiumBundle.args,
-    executablePath: await resolveBundledChromiumExecutable(),
-    headless: true,
-    env: {
-      ...process.env,
-      XDG_CACHE_HOME: join(tmpdir(), 'sticker-generator-test-cache'),
-    },
-  });
+  browser = await launchApplicationBrowser();
   page = await browser.newPage();
 }, 30_000);
 
 afterAll(async () => {
+  await page?.close();
   await browser?.close();
   await new Promise<void>((resolve, reject) => {
     server?.close((error) => (error ? reject(error) : resolve()));

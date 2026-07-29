@@ -1,31 +1,20 @@
-import chromiumBundle from '@sparticuz/chromium';
-import { join } from 'node:path';
-import { tmpdir } from 'node:os';
-import { chromium, type Browser } from 'playwright-core';
+import type { Browser, Page } from 'playwright-core';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   PlaywrightTextMeasurementService,
   SinglePlaywrightPageProvider,
   type FontSettings,
 } from '../src/index.js';
-import { resolveBundledChromiumExecutable } from '../src/main/services/BundledChromium.js';
+import { launchApplicationBrowser } from '../src/main/services/BrowserFactory.js';
 
 describe('PlaywrightTextMeasurementService', () => {
   let browser: Browser | undefined;
+  let page: Page | undefined;
   let service: PlaywrightTextMeasurementService;
 
   beforeAll(async () => {
-    chromiumBundle.setGraphicsMode = false;
-    browser = await chromium.launch({
-      args: chromiumBundle.args,
-      executablePath: await resolveBundledChromiumExecutable(),
-      headless: true,
-      env: {
-        ...process.env,
-        XDG_CACHE_HOME: join(tmpdir(), 'sticker-generator-test-cache'),
-      },
-    });
-    const page = await browser.newPage();
+    browser = await launchApplicationBrowser();
+    page = await browser.newPage();
     await page.setContent('<!doctype html><html><body></body></html>');
     service = new PlaywrightTextMeasurementService(
       new SinglePlaywrightPageProvider(page),
@@ -33,6 +22,7 @@ describe('PlaywrightTextMeasurementService', () => {
   }, 30_000);
 
   afterAll(async () => {
+    await page?.close();
     await browser?.close();
   }, 30_000);
 
