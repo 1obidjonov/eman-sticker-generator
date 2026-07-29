@@ -24,7 +24,7 @@ npm run package:win
 Ожидаемый файл:
 
 ```text
-release/Eman-Sticker-Generator-0.8.0-rc.3-x64.exe
+release/Eman-Sticker-Generator-0.8.0-rc.4-x64.exe
 ```
 
 Отдельная portable-сборка:
@@ -36,7 +36,7 @@ npm run package:portable
 Ожидаемый portable-файл:
 
 ```text
-release/Eman-Sticker-Generator-Portable-0.8.0-rc.3-x64.exe
+release/Eman-Sticker-Generator-Portable-0.8.0-rc.4-x64.exe
 ```
 
 `npm run package:dir` создаёт распакованный каталог приложения для локальной
@@ -59,7 +59,7 @@ npm run package:win
 Проверка подписи:
 
 ```powershell
-Get-AuthenticodeSignature .\release\Eman-Sticker-Generator-0.8.0-rc.3-x64.exe
+Get-AuthenticodeSignature .\release\Eman-Sticker-Generator-0.8.0-rc.4-x64.exe
 ```
 
 Для публичного выпуска ожидается статус `Valid`.
@@ -67,7 +67,7 @@ Get-AuthenticodeSignature .\release\Eman-Sticker-Generator-0.8.0-rc.3-x64.exe
 ## Контроль целостности
 
 ```powershell
-Get-FileHash .\release\Eman-Sticker-Generator-0.8.0-rc.3-x64.exe -Algorithm SHA256
+Get-FileHash .\release\Eman-Sticker-Generator-0.8.0-rc.4-x64.exe -Algorithm SHA256
 ```
 
 Сохраните SHA-256 рядом с карточкой пилотного прогона. Перед передачей:

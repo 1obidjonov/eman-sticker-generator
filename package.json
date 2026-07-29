@@ -1,13 +1,13 @@
 {
   "name": "sticker-generator",
-  "version": "0.8.0-rc.3",
+  "version": "0.8.0-rc.4",
   "private": true,
   "productName": "Eman Sticker Generator",
   "author": {
     "name": "Eman Materials"
   },
   "type": "module",
-  "main": "dist/src/main/index.js",
+  "main": "dist/src/main/bootstrap.js",
   "description": "Desktop sticker generator with templates, pluggable parsers, batch export and persistent application settings.",
   "scripts": {
     "build": "npm run typecheck && npm run build:electron && npm run build:renderer",
@@ -29,6 +29,7 @@
     "release:finalize:win": "node dist/scripts/finalize-release.js --require-windows-installer",
     "release:verify-artifacts": "node dist/scripts/verify-release-artifacts.js",
     "release:verify-artifacts:win": "node dist/scripts/verify-release-artifacts.js --require-windows-installer",
+    "release:verify-asar": "node dist/scripts/verify-packaged-asar.js",
     "release:validate-windows-rc": "pwsh -NoLogo -NoProfile -File scripts/windows-rc-validation.ps1",
     "release:prepare": "npm run release:verify && npm run release:sbom && npm run release:finalize && npm run release:verify-artifacts",
     "package:dir": "npm run release:verify && electron-builder --dir --config electron-builder.yml",
@@ -51,6 +52,7 @@
     "zustand": "5.0.8"
   },
   "devDependencies": {
+    "@electron/asar": "3.4.1",
     "@types/archiver": "^8.0.0",
     "@types/node": "24.3.0",
     "@types/qrcode": "1.5.6",

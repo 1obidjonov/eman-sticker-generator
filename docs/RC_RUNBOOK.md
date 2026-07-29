@@ -1,6 +1,6 @@
 # Runbook Windows Release Candidate
 
-Этот документ описывает выпуск Eman Sticker Generator `0.8.0-rc.3`.
+Этот документ описывает выпуск Eman Sticker Generator `0.8.0-rc.4`.
 Release Candidate предназначен для внутреннего пилота и становится публичным
 только после успешной цифровой подписи.
 
@@ -37,8 +37,8 @@ Release Candidate предназначен для внутреннего пил�
 Из чистой основной ветки:
 
 ```bash
-git tag -a v0.8.0-rc.3 -m "Eman Sticker Generator 0.8.0-rc.3"
-git push origin v0.8.0-rc.3
+git tag -a v0.8.0-rc.4 -m "Eman Sticker Generator 0.8.0-rc.4"
+git push origin v0.8.0-rc.4
 ```
 
 Push тега запускает сборку и сохраняет workflow artifact, но сам по себе не
@@ -48,8 +48,8 @@ Push тега запускает сборку и сохраняет workflow art
 Альтернативный автоматизированный способ после зелёного workflow `Quality`:
 
 ```bash
-git branch release/v0.8.0-rc.3
-git push origin release/v0.8.0-rc.3
+git branch release/v0.8.0-rc.4
+git push origin release/v0.8.0-rc.4
 ```
 
 Workflow `Release Candidate Request` проверяет, что имя ветки совпадает с
@@ -58,7 +58,7 @@ Workflow `Release Candidate Request` проверяет, что имя ветк�
 
 ## Проверка результатов
 
-Скачайте artifact `eman-sticker-generator-v0.8.0-rc.3-windows-x64` и проверьте:
+Скачайте artifact `eman-sticker-generator-v0.8.0-rc.4-windows-x64` и проверьте:
 
 | Файл | Ожидаемый результат |
 |---|---|
@@ -76,12 +76,12 @@ Workflow `Release Candidate Request` проверяет, что имя ветк�
 
 После проверки внутреннего artifact запустите workflow вручную:
 
-- `release_tag`: `v0.8.0-rc.3`;
+- `release_tag`: `v0.8.0-rc.4`;
 - `publish_release`: `true`.
 
 Workflow повторно собирает кандидат из commit тега. Публикация блокируется,
 если Authenticode-подпись отсутствует или имеет статус, отличный от `Valid`.
-Версия с суффиксом `-rc.1` публикуется как GitHub prerelease.
+Версия с суффиксом `-rc.*` публикуется как GitHub prerelease.
 
 ## Решение go / no-go
 
@@ -93,4 +93,4 @@ RC допускается к пилоту, если:
 - SHA-256 установщика зафиксирован в карточке пилота.
 
 При ошибке не заменяйте байты существующего тега. Исправьте дефект, увеличьте
-номер кандидата до `0.8.0-rc.2` и выпустите новый тег.
+номер кандидата и выпустите новый тег.

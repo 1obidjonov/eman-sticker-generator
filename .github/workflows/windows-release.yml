@@ -9,7 +9,7 @@ on:
       release_tag:
         description: Existing Git tag matching package.json
         required: true
-        default: v0.8.0-rc.3
+        default: v0.8.0-rc.4
         type: string
       publish_release:
         description: Publish the signed candidate to a GitHub prerelease
@@ -79,6 +79,11 @@ jobs:
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
         run: npm run package:win
 
+      - name: Inspect packaged ASAR
+        run: >-
+          npm run release:verify-asar --
+          release/win-unpacked/resources/app.asar
+
       - name: Smoke-test packaged application
         shell: pwsh
         run: |
@@ -88,12 +93,14 @@ jobs:
           $standardOutput = Join-Path $env:RUNNER_TEMP "windows-smoke-stdout.log"
           $standardError = Join-Path $env:RUNNER_TEMP "windows-smoke-stderr.log"
           $electronLog = Join-Path $env:RUNNER_TEMP "windows-electron.log"
+          $bootstrapLog = Join-Path $env:RUNNER_TEMP "windows-bootstrap.log"
           New-Item -ItemType Directory -Path $profile -Force | Out-Null
           $arguments = @(
             "--smoke-test",
             "--smoke-output=$report",
             "--smoke-user-data-dir=$profile",
             "--smoke-timeout-ms=30000",
+            "--disable-gpu",
             "--enable-logging",
             "--log-file=$electronLog"
           )
@@ -103,6 +110,12 @@ jobs:
           $startInfo.RedirectStandardOutput = $true
           $startInfo.RedirectStandardError = $true
           $startInfo.Environment["ELECTRON_ENABLE_LOGGING"] = "1"
+          $startInfo.Environment["STICKER_SMOKE_TEST"] = "1"
+          $startInfo.Environment["STICKER_SMOKE_OUTPUT"] = $report
+          $startInfo.Environment["STICKER_SMOKE_USER_DATA_DIR"] = $profile
+          $startInfo.Environment["STICKER_SMOKE_TIMEOUT_MS"] = "30000"
+          $startInfo.Environment["STICKER_SMOKE_BOOTSTRAP_LOG"] = $bootstrapLog
+          $startInfo.Environment["STICKER_APP_VERSION"] = $env:PACKAGE_VERSION
           foreach ($argument in $arguments) {
             [void]$startInfo.ArgumentList.Add($argument)
           }
@@ -135,6 +148,7 @@ jobs:
                 $standardOutput,
                 $standardError,
                 $electronLog,
+                $bootstrapLog,
                 (Join-Path $profile "logs/application.log"),
                 (Join-Path $profile "logs/application.previous.log")
               )) {
@@ -163,6 +177,7 @@ jobs:
             ${{ runner.temp }}/windows-smoke-stdout.log
             ${{ runner.temp }}/windows-smoke-stderr.log
             ${{ runner.temp }}/windows-electron.log
+            ${{ runner.temp }}/windows-bootstrap.log
             ${{ runner.temp }}/windows-unpacked-smoke-profile/logs/*.log
           if-no-files-found: warn
           retention-days: 7

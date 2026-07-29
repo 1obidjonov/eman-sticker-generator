@@ -65,8 +65,8 @@ Workflow `.github/workflows/rc-release-request.yml` предоставляет �
 Перед тегом обновите версию и release notes, затем:
 
 ```bash
-git tag -a v0.8.0-rc.3 -m "Eman Sticker Generator 0.8.0-rc.3"
-git push origin v0.8.0-rc.3
+git tag -a v0.8.0-rc.4 -m "Eman Sticker Generator 0.8.0-rc.4"
+git push origin v0.8.0-rc.4
 ```
 
 Тег обязан существовать, совпадать с `package.json` и указывать на собираемый
@@ -79,7 +79,7 @@ GitHub Release. Для подписанного prerelease повторно за
 
 | Файл | Назначение |
 |---|---|
-| `Eman-Sticker-Generator-0.8.0-rc.3-x64.exe` | NSIS-установщик |
+| `Eman-Sticker-Generator-0.8.0-rc.4-x64.exe` | NSIS-установщик |
 | `windows-smoke-report.json` | результат запуска упакованного приложения |
 | `windows-lifecycle-report.json` | установка, два запуска, удаление и сохранность данных |
 | `release-verification.json` | исходные release-проверки |
@@ -110,8 +110,8 @@ npm run release:verify-artifacts:win
 В PowerShell из папки релиза:
 
 ```powershell
-Get-FileHash .\Eman-Sticker-Generator-0.8.0-rc.3-x64.exe -Algorithm SHA256
-Get-AuthenticodeSignature .\Eman-Sticker-Generator-0.8.0-rc.3-x64.exe
+Get-FileHash .\Eman-Sticker-Generator-0.8.0-rc.4-x64.exe -Algorithm SHA256
+Get-AuthenticodeSignature .\Eman-Sticker-Generator-0.8.0-rc.4-x64.exe
 ```
 
 SHA-256 должен совпасть со строкой в `checksums.sha256`, а публично

@@ -40,6 +40,48 @@ describe('SmokeTestService', () => {
     });
   });
 
+  it('accepts smoke options from a packaged-process environment', () => {
+    const outputPath = join(tmpdir(), 'eman-env-smoke.json');
+    const userDataPath = join(tmpdir(), 'eman-env-smoke-profile');
+
+    expect(
+      parseSmokeTestRequest(['EmanStickerGenerator.exe'], {
+        STICKER_SMOKE_TEST: '1',
+        STICKER_SMOKE_OUTPUT: ` ${outputPath} `,
+        STICKER_SMOKE_TIMEOUT_MS: '30000',
+        STICKER_SMOKE_USER_DATA_DIR: userDataPath,
+      }),
+    ).toEqual({
+      outputPath,
+      timeoutMs: 30_000,
+      userDataPath,
+    });
+  });
+
+  it('prefers explicit command-line options over the environment', () => {
+    const argumentOutput = join(tmpdir(), 'argument-smoke.json');
+    const environmentOutput = join(tmpdir(), 'environment-smoke.json');
+
+    expect(
+      parseSmokeTestRequest(
+        [
+          '--smoke-test',
+          `--smoke-output=${argumentOutput}`,
+          '--smoke-timeout-ms=15000',
+        ],
+        {
+          STICKER_SMOKE_TEST: '1',
+          STICKER_SMOKE_OUTPUT: environmentOutput,
+          STICKER_SMOKE_TIMEOUT_MS: '30000',
+        },
+      ),
+    ).toEqual({
+      outputPath: argumentOutput,
+      timeoutMs: 15_000,
+      userDataPath: null,
+    });
+  });
+
   it('rejects a relative report path and an unsafe timeout', () => {
     expect(() =>
       parseSmokeTestRequest([

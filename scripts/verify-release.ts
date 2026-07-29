@@ -174,7 +174,8 @@ await check('Production security policy', async () => {
 });
 
 await check('Packaged runtime smoke-test', async () => {
-  const [mainSource, smokeService] = await Promise.all([
+  const [bootstrapSource, mainSource, smokeService] = await Promise.all([
+    readFile(join(projectRoot, 'src/main/bootstrap.ts'), 'utf8'),
     readFile(join(projectRoot, 'src/main/index.ts'), 'utf8'),
     readFile(
       join(projectRoot, 'src/main/services/SmokeTestService.ts'),
@@ -184,20 +185,27 @@ await check('Packaged runtime smoke-test', async () => {
   for (const required of [
     '--smoke-test',
     '--smoke-user-data-dir',
+    'STICKER_SMOKE_TEST',
+    'STICKER_SMOKE_BOOTSTRAP_LOG',
     'writeSmokeTestReport',
     'Preload bridge',
   ]) {
-    if (!mainSource.includes(required) && !smokeService.includes(required)) {
+    if (
+      !bootstrapSource.includes(required) &&
+      !mainSource.includes(required) &&
+      !smokeService.includes(required)
+    ) {
       throw new Error(`Missing runtime smoke capability: ${required}`);
     }
   }
-  return 'main initialization, renderer, preload bridge';
+  return 'bootstrap, env/argv activation, renderer, preload bridge';
 });
 
 await check('Release integrity tooling', async () => {
   for (const path of [
     'dist/scripts/generate-sbom.js',
     'dist/scripts/finalize-release.js',
+    'dist/scripts/verify-packaged-asar.js',
     'dist/scripts/verify-release-artifacts.js',
     'dist/src/core/release/ReleaseArtifactEngine.js',
   ]) {

@@ -29,17 +29,25 @@ export interface SmokeTestReport {
   checks: SmokeTestCheck[];
 }
 
+export type SmokeTestEnvironment = Record<string, string | undefined>;
+
 export function parseSmokeTestRequest(
   argumentsList: string[],
+  environment: SmokeTestEnvironment = process.env,
 ): SmokeTestRequest | null {
-  if (!argumentsList.includes('--smoke-test')) {
+  if (
+    !argumentsList.includes('--smoke-test') &&
+    environment.STICKER_SMOKE_TEST !== '1'
+  ) {
     return null;
   }
 
-  const outputPath = optionValue(argumentsList, '--smoke-output');
+  const outputPath =
+    optionValue(argumentsList, '--smoke-output') ??
+    environmentValue(environment.STICKER_SMOKE_OUTPUT);
   if (!outputPath) {
     throw new Error(
-      'Smoke-test требует абсолютный путь --smoke-output=<file.json>.',
+      'Smoke-test требует абсолютный путь --smoke-output=<file.json> или STICKER_SMOKE_OUTPUT.',
     );
   }
   if (!isAbsolute(outputPath) || !outputPath.toLowerCase().endsWith('.json')) {
@@ -48,7 +56,9 @@ export function parseSmokeTestRequest(
     );
   }
 
-  const timeoutValue = optionValue(argumentsList, '--smoke-timeout-ms');
+  const timeoutValue =
+    optionValue(argumentsList, '--smoke-timeout-ms') ??
+    environmentValue(environment.STICKER_SMOKE_TIMEOUT_MS);
   const timeoutMs = timeoutValue
     ? Number(timeoutValue)
     : DEFAULT_TIMEOUT_MS;
@@ -62,10 +72,9 @@ export function parseSmokeTestRequest(
     );
   }
 
-  const userDataPath = optionValue(
-    argumentsList,
-    '--smoke-user-data-dir',
-  );
+  const userDataPath =
+    optionValue(argumentsList, '--smoke-user-data-dir') ??
+    environmentValue(environment.STICKER_SMOKE_USER_DATA_DIR);
   if (userDataPath && !isAbsolute(userDataPath)) {
     throw new Error(
       'Путь профиля smoke-теста должен быть абсолютным.',
@@ -113,4 +122,8 @@ function optionValue(
     return null;
   }
   return value.trim() || null;
+}
+
+function environmentValue(value: string | undefined): string | null {
+  return value?.trim() || null;
 }
