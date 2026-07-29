@@ -1,8 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { tmpdir } from 'node:os';
-import chromiumBundle from '@sparticuz/chromium';
-import { chromium } from 'playwright-core';
+import { resolve } from 'node:path';
 import {
   FileBackgroundResolver,
   ExportEngine,
@@ -13,7 +10,7 @@ import {
   type Product,
   type Template,
 } from '../src/index.js';
-import { resolveBundledChromiumExecutable } from '../src/main/services/BundledChromium.js';
+import { launchApplicationBrowser } from '../src/main/services/BrowserFactory.js';
 
 const projectRoot = resolve(process.cwd());
 const templateDirectory = resolve(projectRoot, 'examples/basic-template');
@@ -36,16 +33,7 @@ const product: Product = {
   sourceParser: 'demo',
 };
 
-chromiumBundle.setGraphicsMode = false;
-const browser = await chromium.launch({
-  args: chromiumBundle.args,
-  executablePath: await resolveBundledChromiumExecutable(),
-  headless: true,
-  env: {
-    ...process.env,
-    XDG_CACHE_HOME: join(tmpdir(), 'sticker-generator-demo-cache'),
-  },
-});
+const browser = await launchApplicationBrowser();
 
 try {
   const page = await browser.newPage();

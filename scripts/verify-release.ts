@@ -274,7 +274,9 @@ await check('Release documentation', async () => {
     access(join(projectRoot, 'docs/WINDOWS_RELEASE.md')),
     access(join(projectRoot, 'docs/CI_CD_RELEASE.md')),
     access(join(projectRoot, 'docs/RC_RUNBOOK.md')),
-    access(join(projectRoot, 'docs/RELEASE_NOTES_0.8.0-rc.1.md')),
+    access(
+      join(projectRoot, `docs/RELEASE_NOTES_${manifest.version}.md`),
+    ),
   ]);
   return 'pilot checklist, RC runbook, CI/CD guide, Windows guide, release notes';
 });

@@ -9,7 +9,7 @@ on:
       release_tag:
         description: Existing Git tag matching package.json
         required: true
-        default: v0.8.0-rc.1
+        default: v0.8.0-rc.2
         type: string
       publish_release:
         description: Publish the signed candidate to a GitHub prerelease

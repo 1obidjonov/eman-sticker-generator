@@ -1,9 +1,6 @@
-import chromiumBundle from '@sparticuz/chromium';
 import { createServer } from 'node:http';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
-import { join, resolve } from 'node:path';
-import { chromium } from 'playwright-core';
+import { resolve } from 'node:path';
 import {
   BatchExportEngine,
   ParserEngine,
@@ -15,8 +12,8 @@ import {
   type Template,
 } from '../src/index.js';
 import type { GenerationProgress } from '../src/shared/ipc-contract.js';
+import { launchApplicationBrowser } from '../src/main/services/BrowserFactory.js';
 import { GenerationService } from '../src/main/services/GenerationService.js';
-import { resolveBundledChromiumExecutable } from '../src/main/services/BundledChromium.js';
 
 const projectRoot = resolve(process.cwd());
 const outputDirectory = resolve(projectRoot, 'examples/output');
@@ -96,18 +93,8 @@ if (!address || typeof address === 'string') {
 }
 const baseUrl = `http://127.0.0.1:${address.port}`;
 
-chromiumBundle.setGraphicsMode = false;
 const browserPool = new PlaywrightBrowserPool(
-  async () =>
-    chromium.launch({
-      executablePath: await resolveBundledChromiumExecutable(),
-      args: chromiumBundle.args,
-      headless: true,
-      env: {
-        ...process.env,
-        XDG_CACHE_HOME: join(tmpdir(), 'sticker-generator-batch-demo-cache'),
-      },
-    }),
+  () => launchApplicationBrowser(),
   { maxPages: 2 },
 );
 
