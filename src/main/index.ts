@@ -68,13 +68,14 @@ if (!ownsSingleInstanceLock) {
       await writeFailedStartupSmokeReport(smokeTestRequest, error).catch(
         () => undefined,
       );
+      app.exit(1);
     } else {
       dialog.showErrorBox(
         'Не удалось запустить Eman Sticker Generator',
         error instanceof Error ? error.message : String(error),
       );
+      app.quit();
     }
-    app.quit();
   }
 }
 
@@ -192,7 +193,7 @@ async function startApplication(): Promise<void> {
           request,
           error,
         ).catch(() => undefined);
-        app.quit();
+        app.exit(1);
       },
     );
     return;
@@ -285,7 +286,7 @@ async function runApplicationSmokeTest(
   if (status === 'failed') {
     process.exitCode = 1;
   }
-  app.quit();
+  app.exit(status === 'passed' ? 0 : 1);
 }
 
 async function waitForRenderer(

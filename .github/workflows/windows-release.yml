@@ -9,7 +9,7 @@ on:
       release_tag:
         description: Existing Git tag matching package.json
         required: true
-        default: v0.8.0-rc.2
+        default: v0.8.0-rc.3
         type: string
       publish_release:
         description: Publish the signed candidate to a GitHub prerelease
@@ -92,12 +92,32 @@ jobs:
             "--smoke-user-data-dir=$profile",
             "--smoke-timeout-ms=30000"
           )
-          $process = Start-Process -FilePath $application -ArgumentList $arguments -Wait -PassThru
-          if ($process.ExitCode -ne 0) {
-            if (Test-Path $report) {
-              Get-Content $report
+          $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+          $startInfo.FileName = $application
+          $startInfo.UseShellExecute = $false
+          foreach ($argument in $arguments) {
+            [void]$startInfo.ArgumentList.Add($argument)
+          }
+          $process = [System.Diagnostics.Process]::Start($startInfo)
+          if (-not $process) {
+            throw "Packaged application did not start."
+          }
+          try {
+            if (-not $process.WaitForExit(60000)) {
+              $process.Kill($true)
+              if (Test-Path $report) {
+                Get-Content $report
+              }
+              throw "Packaged application smoke-test timed out."
             }
-            throw "Packaged application smoke-test failed with exit code $($process.ExitCode)"
+            if ($process.ExitCode -ne 0) {
+              if (Test-Path $report) {
+                Get-Content $report
+              }
+              throw "Packaged application smoke-test failed with exit code $($process.ExitCode)"
+            }
+          } finally {
+            $process.Dispose()
           }
           $smoke = Get-Content $report | ConvertFrom-Json
           if ($smoke.status -ne "passed") {

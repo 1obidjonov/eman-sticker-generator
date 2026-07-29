@@ -69,6 +69,19 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          while read -r run_id; do
+            if [[ -n "${run_id}" ]]; then
+              gh run cancel "${run_id}" --repo "${GITHUB_REPOSITORY}"
+            fi
+          done < <(
+            gh run list \
+              --repo "${GITHUB_REPOSITORY}" \
+              --workflow windows-release.yml \
+              --limit 20 \
+              --json databaseId,status \
+              --jq '.[] | select(.status == "in_progress" or .status == "queued") | .databaseId'
+          )
+
           gh workflow run windows-release.yml \
             --repo "${GITHUB_REPOSITORY}" \
             --ref main \
