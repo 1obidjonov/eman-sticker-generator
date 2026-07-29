@@ -1,0 +1,59 @@
+{
+  "progress": {
+    "jobId": "eb501750-b96c-42cf-b1ac-269464001a6d",
+    "status": "completed",
+    "total": 3,
+    "completed": 3,
+    "succeeded": 3,
+    "failed": 0,
+    "active": 0,
+    "pending": 0
+  },
+  "products": [
+    {
+      "url": "http://127.0.0.1:46335/products/tokyo-white",
+      "name": "Акрил AGT Tokyo White 2800×1220×18",
+      "price": "1485000 UZS",
+      "sku": "AGT-3075",
+      "sourceParser": "schema-org",
+      "raw": {
+        "extractionSource": "json-ld",
+        "brand": "AGT",
+        "currency": "UZS"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:46335/products/spectrum-light",
+      "name": "Акрил AGT Spectrum Light 2800×1220×18",
+      "price": "1530000 UZS",
+      "sku": "AGT-6023",
+      "sourceParser": "schema-org",
+      "raw": {
+        "extractionSource": "json-ld",
+        "brand": "AGT",
+        "currency": "UZS"
+      }
+    },
+    {
+      "url": "http://127.0.0.1:46335/products/deluxe-grey",
+      "name": "Акрил AGT Deluxe Grey 2800×1220×18",
+      "price": "1515000 UZS",
+      "sku": "AGT-6008",
+      "sourceParser": "schema-org",
+      "raw": {
+        "extractionSource": "json-ld",
+        "brand": "AGT",
+        "currency": "UZS"
+      }
+    }
+  ],
+  "archive": {
+    "fileName": "demo-batch.zip",
+    "bytes": 586411,
+    "formats": [
+      "svg",
+      "png",
+      "jpg"
+    ]
+  }
+}

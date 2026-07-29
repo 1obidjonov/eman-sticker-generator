@@ -1,0 +1,56 @@
+appId: uz.eman.stickergenerator
+productName: Eman Sticker Generator
+artifactName: Eman-Sticker-Generator-${version}-${arch}.${ext}
+copyright: Copyright © 2026 Eman Materials
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/src/**/*
+  - dist/renderer/**/*
+  - package.json
+  - "!**/*.map"
+  - "!dist/scripts/**/*"
+
+asar: true
+asarUnpack:
+  - node_modules/@sparticuz/chromium/bin/**/*
+  - node_modules/sharp/**/*
+  - node_modules/@img/**/*
+
+npmRebuild: false
+compression: maximum
+removePackageScripts: true
+
+win:
+  icon: build/icon.png
+  executableName: EmanStickerGenerator
+  target:
+    - target: nsis
+      arch:
+        - x64
+
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Eman Sticker Generator
+  uninstallDisplayName: Eman Sticker Generator
+  deleteAppDataOnUninstall: false
+  runAfterFinish: true
+  installerLanguages:
+    - ru_RU
+    - en_US
+
+linux:
+  icon: build/icon.png
+  category: Graphics
+  executableName: eman-sticker-generator
+  target:
+    - AppImage
+
+publish: null

@@ -1,0 +1,73 @@
+{
+  "name": "sticker-generator",
+  "version": "0.8.0-rc.1",
+  "private": true,
+  "productName": "Eman Sticker Generator",
+  "author": {
+    "name": "Eman Materials"
+  },
+  "type": "module",
+  "main": "dist/src/main/index.js",
+  "description": "Desktop sticker generator with templates, pluggable parsers, batch export and persistent application settings.",
+  "scripts": {
+    "build": "npm run typecheck && npm run build:electron && npm run build:renderer",
+    "build:electron": "tsc -p tsconfig.electron.json && npm run build:preload",
+    "build:preload": "esbuild src/preload.ts --bundle --platform=node --format=cjs --outfile=dist/src/preload.cjs --external:electron",
+    "build:renderer": "vite build",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && npm run build:electron && cross-env VITE_DEV_SERVER_URL=http://localhost:5173 electron .\"",
+    "start": "electron .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "audit:prod": "npm audit --omit=dev --audit-level=high",
+    "demo": "node dist/scripts/generate-demo.js",
+    "demo:batch": "node dist/scripts/generate-batch-demo.js",
+    "release:verify": "npm run build && node dist/scripts/verify-release.js",
+    "release:report": "node dist/scripts/verify-release.js",
+    "release:sbom": "node dist/scripts/generate-sbom.js",
+    "release:finalize": "node dist/scripts/finalize-release.js",
+    "release:finalize:win": "node dist/scripts/finalize-release.js --require-windows-installer",
+    "release:verify-artifacts": "node dist/scripts/verify-release-artifacts.js",
+    "release:verify-artifacts:win": "node dist/scripts/verify-release-artifacts.js --require-windows-installer",
+    "release:validate-windows-rc": "pwsh -NoLogo -NoProfile -File scripts/windows-rc-validation.ps1",
+    "release:prepare": "npm run release:verify && npm run release:sbom && npm run release:finalize && npm run release:verify-artifacts",
+    "package:dir": "npm run release:verify && electron-builder --dir --config electron-builder.yml",
+    "package:win": "npm run release:verify && electron-builder --win nsis --x64 --config electron-builder.yml && npm run release:report && npm run release:sbom && npm run release:finalize:win",
+    "package:portable": "npm run release:verify && electron-builder --win portable --x64 --config electron-builder-portable.yml && npm run release:report && npm run release:sbom && npm run release:finalize",
+    "check": "npm run build && npm run test && npm run demo && npm run demo:batch && node dist/scripts/verify-release.js"
+  },
+  "dependencies": {
+    "@sparticuz/chromium": "^141.0.0",
+    "archiver": "^8.0.0",
+    "konva": "10.0.12",
+    "lucide-react": "0.468.0",
+    "playwright-core": "1.61.1",
+    "qrcode": "1.5.4",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "react-konva": "19.0.10",
+    "sharp": "^0.35.3",
+    "tar-fs": "^3.1.3",
+    "zustand": "5.0.8"
+  },
+  "devDependencies": {
+    "@types/archiver": "^8.0.0",
+    "@types/node": "24.3.0",
+    "@types/qrcode": "1.5.6",
+    "@types/react": "19.1.10",
+    "@types/react-dom": "19.1.7",
+    "@vitejs/plugin-react": "5.0.4",
+    "concurrently": "9.2.1",
+    "cross-env": "10.0.0",
+    "electron": "38.2.2",
+    "electron-builder": "^26.15.3",
+    "esbuild": "0.25.10",
+    "typescript": "5.9.3",
+    "vite": "7.1.7",
+    "vitest": "3.2.4",
+    "wait-on": "8.0.4"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

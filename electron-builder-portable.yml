@@ -1,0 +1,10 @@
+extends: ./electron-builder.yml
+artifactName: Eman-Sticker-Generator-Portable-${version}-${arch}.${ext}
+
+win:
+  icon: build/icon.png
+  executableName: EmanStickerGenerator
+  target:
+    - target: portable
+      arch:
+        - x64

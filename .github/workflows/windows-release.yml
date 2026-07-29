@@ -1,0 +1,201 @@
+name: Windows Release Candidate
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: Existing Git tag matching package.json
+        required: true
+        default: v0.8.0-rc.1
+        type: string
+      publish_release:
+        description: Publish the signed candidate to a GitHub prerelease
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+
+concurrency:
+  group: windows-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Build and verify Windows x64
+    runs-on: windows-2022
+    timeout-minutes: 75
+
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.release_tag || github.ref }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          package-manager-cache: false
+
+      - name: Resolve and verify release tag
+        shell: pwsh
+        run: |
+          $packageVersion = (Get-Content package.json | ConvertFrom-Json).version
+          if ("${{ github.event_name }}" -eq "push") {
+            $releaseTag = "${{ github.ref_name }}"
+          } else {
+            $releaseTag = "${{ inputs.release_tag }}"
+          }
+          if ($releaseTag -ne "v$packageVersion") {
+            throw "Tag $releaseTag does not match package version $packageVersion"
+          }
+          $tagCommit = git rev-list -n 1 $releaseTag
+          $sourceCommit = git rev-parse HEAD
+          if (-not $tagCommit -or $tagCommit -ne $sourceCommit) {
+            throw "Checked-out commit $sourceCommit does not match $releaseTag ($tagCommit)"
+          }
+          "RELEASE_TAG=$releaseTag" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "PACKAGE_VERSION=$packageVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Audit production dependencies
+        run: npm run audit:prod
+
+      - name: Build and test source
+        run: npm run check
+
+      - name: Build NSIS installer
+        env:
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+        run: npm run package:win
+
+      - name: Smoke-test packaged application
+        shell: pwsh
+        run: |
+          $application = Resolve-Path "release/win-unpacked/EmanStickerGenerator.exe"
+          $report = Join-Path $env:RUNNER_TEMP "windows-smoke-report.json"
+          $profile = Join-Path $env:RUNNER_TEMP "windows-unpacked-smoke-profile"
+          New-Item -ItemType Directory -Path $profile -Force | Out-Null
+          $arguments = @(
+            "--smoke-test",
+            "--smoke-output=$report",
+            "--smoke-user-data-dir=$profile",
+            "--smoke-timeout-ms=30000"
+          )
+          $process = Start-Process -FilePath $application -ArgumentList $arguments -Wait -PassThru
+          if ($process.ExitCode -ne 0) {
+            if (Test-Path $report) {
+              Get-Content $report
+            }
+            throw "Packaged application smoke-test failed with exit code $($process.ExitCode)"
+          }
+          $smoke = Get-Content $report | ConvertFrom-Json
+          if ($smoke.status -ne "passed") {
+            throw "Smoke report status is $($smoke.status)"
+          }
+          Copy-Item $report "release/windows-smoke-report.json"
+
+      - name: Verify Authenticode status
+        shell: pwsh
+        env:
+          SIGNING_CONFIGURED: ${{ secrets.WINDOWS_CSC_LINK }}
+          PUBLISH_REQUESTED: ${{ inputs.publish_release || false }}
+        run: |
+          $installer = Resolve-Path "release/Eman-Sticker-Generator-$env:PACKAGE_VERSION-x64.exe"
+          $signature = Get-AuthenticodeSignature $installer
+          if ($env:SIGNING_CONFIGURED) {
+            if ($signature.Status -ne "Valid") {
+              throw "Configured signature is not valid: $($signature.Status)"
+            }
+            "WINDOWS_SIGNATURE_STATUS=signed" | Out-File -FilePath $env:GITHUB_ENV -Append
+          } else {
+            Write-Warning "Code-signing secret is absent; artifact is for internal pilot only."
+            "WINDOWS_SIGNATURE_STATUS=unsigned" | Out-File -FilePath $env:GITHUB_ENV -Append
+          }
+          if ($env:PUBLISH_REQUESTED -eq "true" -and $signature.Status -ne "Valid") {
+            throw "Publishing requires a valid Authenticode signature."
+          }
+
+      - name: Validate installed application lifecycle
+        shell: pwsh
+        env:
+          SIGNING_CONFIGURED: ${{ secrets.WINDOWS_CSC_LINK }}
+        run: |
+          $parameters = @{
+            InstallerPath = "release/Eman-Sticker-Generator-$env:PACKAGE_VERSION-x64.exe"
+            ExpectedVersion = $env:PACKAGE_VERSION
+            ReportPath = "release/windows-lifecycle-report.json"
+          }
+          if ($env:SIGNING_CONFIGURED) {
+            & ./scripts/windows-rc-validation.ps1 @parameters -RequireSignature
+          } else {
+            & ./scripts/windows-rc-validation.ps1 @parameters
+          }
+
+      - name: Finalize and verify release artifacts
+        shell: pwsh
+        run: |
+          npm run release:finalize:win
+          npm run release:verify-artifacts:win
+
+      - name: Upload verified release bundle
+        uses: actions/upload-artifact@v6
+        with:
+          name: eman-sticker-generator-${{ env.RELEASE_TAG }}-windows-x64
+          path: |
+            release/Eman-Sticker-Generator-*.exe
+            release/*.blockmap
+            release/latest*.yml
+            release/release-verification.json
+            release/windows-smoke-report.json
+            release/windows-lifecycle-report.json
+            release/sbom.cdx.json
+            release/release-manifest.json
+            release/checksums.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish GitHub Release
+        if: inputs.publish_release == true
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $manifest = Get-Content "release/release-manifest.json" | ConvertFrom-Json
+          $files = @(
+            $manifest.artifacts | ForEach-Object { Join-Path "release" $_.fileName }
+          )
+          $files += "release/release-manifest.json"
+          $files += "release/checksums.sha256"
+          $notesFile = "docs/RELEASE_NOTES_$env:PACKAGE_VERSION.md"
+          if (-not (Test-Path $notesFile)) {
+            throw "Release notes not found: $notesFile"
+          }
+          gh release view $env:RELEASE_TAG 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $env:RELEASE_TAG $files --clobber
+          } else {
+            $createArguments = @(
+              $env:RELEASE_TAG
+              $files
+              "--verify-tag"
+              "--title"
+              "Eman Sticker Generator $env:RELEASE_TAG"
+              "--notes-file"
+              $notesFile
+            )
+            if ($env:PACKAGE_VERSION.Contains("-")) {
+              $createArguments += "--prerelease"
+            }
+            gh release create @createArguments
+          }

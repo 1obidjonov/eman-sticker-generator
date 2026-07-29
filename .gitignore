@@ -1,0 +1,7 @@
+node_modules/
+dist/
+coverage/
+/release/
+.DS_Store
+examples/output/*.svg
+!examples/output/.gitkeep

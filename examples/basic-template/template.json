@@ -1,0 +1,115 @@
+{
+  "id": "template-eman-basic",
+  "name": "EMAN — базовая товарная наклейка",
+  "createdAt": "2026-07-29T00:00:00.000Z",
+  "updatedAt": "2026-07-29T00:00:00.000Z",
+  "background": {
+    "format": "svg",
+    "filePath": "background.svg",
+    "width": 1000,
+    "height": 600
+  },
+  "fields": [
+    {
+      "id": "field-brand",
+      "name": "Бренд",
+      "type": "text",
+      "source": "custom",
+      "customText": "EMAN MATERIALS",
+      "rect": { "x": 70, "y": 18, "width": 600, "height": 45 },
+      "zIndex": 1,
+      "font": {
+        "family": "Arial",
+        "size": 34,
+        "minSize": 28,
+        "maxSize": 34,
+        "bold": true,
+        "italic": false
+      },
+      "align": "left",
+      "lineHeight": 1,
+      "color": "#FFFFFF",
+      "wrap": false,
+      "autoShrink": true,
+      "ellipsis": true
+    },
+    {
+      "id": "field-product-name",
+      "name": "Название товара",
+      "type": "text",
+      "source": "productName",
+      "rect": { "x": 70, "y": 125, "width": 650, "height": 180 },
+      "zIndex": 2,
+      "font": {
+        "family": "Arial",
+        "size": 52,
+        "minSize": 26,
+        "maxSize": 52,
+        "bold": true,
+        "italic": false
+      },
+      "align": "left",
+      "lineHeight": 1.12,
+      "color": "#18221D",
+      "wrap": true,
+      "autoShrink": true,
+      "ellipsis": true
+    },
+    {
+      "id": "field-price",
+      "name": "Цена",
+      "type": "text",
+      "source": "price",
+      "rect": { "x": 70, "y": 345, "width": 610, "height": 75 },
+      "zIndex": 3,
+      "font": {
+        "family": "Arial",
+        "size": 60,
+        "minSize": 36,
+        "maxSize": 60,
+        "bold": true,
+        "italic": false
+      },
+      "align": "left",
+      "lineHeight": 1,
+      "color": "#0D9C5B",
+      "wrap": false,
+      "autoShrink": true,
+      "ellipsis": true
+    },
+    {
+      "id": "field-sku",
+      "name": "Артикул",
+      "type": "text",
+      "source": "sku",
+      "rect": { "x": 70, "y": 445, "width": 610, "height": 38 },
+      "zIndex": 4,
+      "font": {
+        "family": "Arial",
+        "size": 26,
+        "minSize": 18,
+        "maxSize": 26,
+        "bold": false,
+        "italic": false
+      },
+      "align": "left",
+      "lineHeight": 1,
+      "color": "#66706B",
+      "wrap": false,
+      "autoShrink": true,
+      "ellipsis": true
+    },
+    {
+      "id": "field-qr",
+      "name": "Ссылка на товар",
+      "type": "qr",
+      "source": "productUrl",
+      "rect": { "x": 780, "y": 315, "width": 150, "height": 150 },
+      "zIndex": 5,
+      "size": 150,
+      "margin": 1,
+      "whiteBackground": true,
+      "errorCorrectionLevel": "M"
+    }
+  ]
+}

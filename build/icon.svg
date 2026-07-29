@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="green" x1="150" y1="100" x2="860" y2="920" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#14AE69"/>
+      <stop offset="1" stop-color="#087B47"/>
+    </linearGradient>
+    <filter id="shadow" x="120" y="120" width="784" height="784" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="34" stdDeviation="28" flood-color="#045C35" flood-opacity=".32"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="222" fill="url(#green)"/>
+  <circle cx="166" cy="170" r="90" fill="#FFFFFF" opacity=".05"/>
+  <circle cx="890" cy="850" r="180" fill="#FFFFFF" opacity=".045"/>
+  <g filter="url(#shadow)">
+    <path d="M242 184h402c41 0 74 33 74 74v332L534 782H242c-41 0-74-33-74-74V258c0-41 33-74 74-74Z" fill="#FFFFFF"/>
+    <path d="M718 590H608c-41 0-74 33-74 74v118l184-192Z" fill="#DDF4E8"/>
+    <path d="M534 782V664c0-41 33-74 74-74h110" fill="none" stroke="#B8E5CE" stroke-width="18" stroke-linejoin="round"/>
+  </g>
+  <g fill="#0D9C5B">
+    <rect x="278" y="310" width="98" height="98" rx="17"/>
+    <rect x="304" y="336" width="46" height="46" rx="8" fill="#FFFFFF"/>
+    <rect x="458" y="310" width="98" height="98" rx="17"/>
+    <rect x="484" y="336" width="46" height="46" rx="8" fill="#FFFFFF"/>
+    <rect x="278" y="490" width="98" height="98" rx="17"/>
+    <rect x="304" y="516" width="46" height="46" rx="8" fill="#FFFFFF"/>
+    <rect x="426" y="458" width="42" height="42" rx="9"/>
+    <rect x="494" y="458" width="42" height="42" rx="9"/>
+    <rect x="562" y="458" width="42" height="42" rx="9"/>
+    <rect x="426" y="526" width="42" height="42" rx="9"/>
+    <rect x="494" y="526" width="42" height="42" rx="9"/>
+    <rect x="562" y="526" width="42" height="42" rx="9"/>
+    <rect x="426" y="594" width="42" height="42" rx="9"/>
+    <rect x="494" y="594" width="42" height="42" rx="9"/>
+  </g>
+  <path d="M790 214c11 54 38 81 92 92-54 11-81 38-92 92-11-54-38-81-92-92 54-11 81-38 92-92Z" fill="#FFFFFF"/>
+  <path d="M850 408c6 29 20 43 49 49-29 6-43 20-49 49-6-29-20-43-49-49 29-6 43-20 49-49Z" fill="#FFFFFF" opacity=".78"/>
+</svg>
